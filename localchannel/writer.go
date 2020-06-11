@@ -1,11 +1,14 @@
 package localchannel
 
 import (
+	"sync/atomic"
+
 	pubsub "github.com/WhoSoup/factom-pubsub"
 )
 
 type writer struct {
-	c chan interface{}
+	c     chan interface{}
+	count int64
 }
 
 var _ pubsub.IChannelWriter = (*writer)(nil)
@@ -18,5 +21,10 @@ func (w *writer) Write(v interface{}) (err error) {
 	}()
 
 	w.c <- v
+	atomic.AddInt64(&w.count, 1)
 	return nil
+}
+
+func (w *writer) Count() int64 {
+	return w.count
 }

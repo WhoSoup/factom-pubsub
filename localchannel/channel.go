@@ -53,3 +53,7 @@ func (c *channel) IsClosed() bool {
 	defer c.mtx.RUnlock()
 	return c.closed
 }
+
+func (c *channel) WriteCount() int64 {
+	return c.writer.count
+}

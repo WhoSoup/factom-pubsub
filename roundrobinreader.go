@@ -1,5 +1,7 @@
 package pubsub2
 
+import "sync"
+
 // order not guaranteed
 type RoundRobinReader struct {
 	channel IChannel
@@ -8,6 +10,7 @@ type RoundRobinReader struct {
 	pos       int
 
 	close chan interface{}
+	once  sync.Once
 }
 
 func NewRoundRobinReader(channel IChannel, count int) *RoundRobinReader {
@@ -28,10 +31,12 @@ func (rr *RoundRobinReader) GetListener(i int) <-chan interface{} {
 }
 
 func (rr *RoundRobinReader) Close() {
-	close(rr.close)
-	for i := range rr.listeners {
-		close(rr.listeners[i])
-	}
+	rr.once.Do(func() {
+		close(rr.close)
+		for i := range rr.listeners {
+			close(rr.listeners[i])
+		}
+	})
 }
 
 func (rr *RoundRobinReader) listen() {
@@ -46,9 +51,13 @@ func (rr *RoundRobinReader) listen() {
 		select {
 		case <-rr.close:
 			return
-		case v := <-reader:
-			rr.listeners[rr.pos] <- v
-			rr.pos = (rr.pos + 1) % len(rr.listeners)
+		case v, ok := <-reader:
+			if ok {
+				rr.listeners[rr.pos] <- v
+				rr.pos = (rr.pos + 1) % len(rr.listeners)
+			} else {
+				rr.Close()
+			}
 		}
 	}
 }
