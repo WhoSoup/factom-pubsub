@@ -1,4 +1,4 @@
-package pubsub2
+package pubsub
 
 import (
 	"errors"
