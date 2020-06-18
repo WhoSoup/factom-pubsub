@@ -15,4 +15,7 @@ type IChannelWriter interface {
 	Write(interface{}) error
 }
 
+type ISubscriber interface {
+}
+
 type ICallback func(interface{})

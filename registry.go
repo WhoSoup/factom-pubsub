@@ -21,12 +21,15 @@ func GlobalRegistry() *Registry {
 
 type Registry struct {
 	mtx   sync.RWMutex
-	paths map[string]IChannel
+	paths map[string]*SubscriptionManager
+
+	subMtx        sync.RWMutex
+	subscriptions map[string]ISubscriber
 }
 
 func NewRegistry() *Registry {
 	r := new(Registry)
-	r.paths = make(map[string]IChannel)
+	r.paths = make(map[string]*SubscriptionManager)
 	return r
 }
 
@@ -35,7 +38,7 @@ func (r *Registry) Register(path string, c IChannel) error {
 	defer r.mtx.Unlock()
 
 	if _, ok := r.paths[path]; ok {
-		return errors.New("channel already exists")
+		return errors.New("channel already registered")
 	}
 	r.paths[path] = c
 	return nil
@@ -53,4 +56,7 @@ func (r *Registry) Get(path string) (IChannel, bool) {
 
 	v, ok := r.paths[path]
 	return v, ok
+}
+
+func (r *Registry) Subscribe(path string, subscriber ISubscriber) {
 }
