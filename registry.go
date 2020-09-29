@@ -21,15 +21,12 @@ func GlobalRegistry() *Registry {
 
 type Registry struct {
 	mtx   sync.RWMutex
-	paths map[string]*SubscriptionManager
-
-	subMtx        sync.RWMutex
-	subscriptions map[string]ISubscriber
+	paths map[string]IChannel
 }
 
 func NewRegistry() *Registry {
 	r := new(Registry)
-	r.paths = make(map[string]*SubscriptionManager)
+	r.paths = make(map[string]IChannel)
 	return r
 }
 
